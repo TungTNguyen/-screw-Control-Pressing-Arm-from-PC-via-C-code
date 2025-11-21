@@ -1,3 +1,50 @@
+# Screw Control Pressing Arm from PC via C++ Code
+
+## Final Goal
+
+Develop a C++ class `act_controller` with the following public interface:
+
+### Core functions
+
+- `init()`
+
+- `connect()`  
+  Only needed if connection/setup is required.  
+  Automatically connects to an available controller.  
+  Returns `0` if successful.
+
+- `disconnect()`  
+  Only needed if connection/setup is required.
+
+- `move_to_origin()`
+
+- `move_relative(int magnitude, int speed)`  
+  - Moves in the positive direction for positive `magnitude`.  
+  - Moves in the negative direction for negative `magnitude`.
+
+- `move_absolute(int position, int speed)`  
+  - Automatically moves to the specified absolute `position`.
+
+- `bool is_connected()`  
+  - Returns `true` if the controller is connected.
+
+- `int get_current_position()`  
+  - Returns the current position of the actuator.
+
+### Additional blocking functions
+
+- `move_relative_blocking(int magnitude, int speed, int timeout)`  
+  - Moves in the positive direction for positive `magnitude`.  
+  - Moves in the negative direction for negative `magnitude`.  
+  - The function waits until the actuator reaches the target position before returning.  
+  - If the actuator does not reach the target within `timeout` seconds, it returns an error.
+
+- `move_absolute_blocking(int position, int speed, int timeout)`  
+  - Automatically moves to the specified absolute `position`.  
+  - The function waits until the actuator reaches the target position before returning.  
+  - If the actuator does not reach the target within `timeout` seconds, it returns an error.
+
+More functions will be added as needed.
 # act_controller Design Overview
 
 ## Purpose
@@ -84,3 +131,4 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
