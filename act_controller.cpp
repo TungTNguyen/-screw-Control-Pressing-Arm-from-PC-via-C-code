@@ -165,6 +165,56 @@ public:
             return 1;
         }
     }
+        // Reset controller (reverse engineered)
+    void reset() {
+        if (!connected_) return;
+        const std::vector<std::string> seq = {
+            // "01 03 00 0e 00 08 25 cf",
+            // "01 03 00 52 00 02 65 da",
+            // "01 03 00 00 00 70 44 2e",
+            // "01 03 00 70 00 70 45 f5",
+            // "01 03 00 e0 00 70 45 d8",
+            // "01 03 01 50 00 30 44 33",
+            // "01 03 03 80 00 40 45 96",
+            // "01 03 04 00 00 70 45 1e",
+            // "01 03 04 70 00 70 44 c5",
+            // "01 03 04 e0 00 70 44 e8",
+            // "01 03 05 50 00 70 44 f3",
+            // "01 03 05 c0 00 70 44 de",
+            // "01 03 06 30 00 70 44 a9",
+            // "01 03 06 a0 00 70 44 84",
+            // "01 03 07 10 00 70 44 9f",
+            // "01 03 07 80 00 70 44 b2",
+            // "01 03 07 f0 00 10 45 41",
+            // "01 03 90 11 00 02 b9 0e",
+            // repeated probe frames
+            // "01 03 03 80 00 40 45 96","01 03 03 80 00 40 45 96","01 03 03 80 00 40 45 96",
+            // "01 03 03 80 00 40 45 96","01 03 03 80 00 40 45 96","01 03 03 80 00 40 45 96",
+            // "01 03 03 80 00 40 45 96","01 03 03 80 00 40 45 96","01 03 03 80 00 40 45 96",
+            "01 03 03 80 00 40 45 96",
+            // reset command
+            "01 05 00 45 ff 00 9d ef",
+            // final probe
+            // "01 03 03 80 00 40 45 96",
+            "01 05 00 1c ff 00 4d fc", // added
+            "01 05 00 1c 00 00 0c 0c"  // added
+        };
+        for (const auto& s : seq) {
+            const auto frame = hex_to_bytes(s);
+            asio::write(port_, asio::buffer(frame.data(), frame.size()));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        // consume any trailing acks
+        asio::steady_timer timer(io_);
+        unsigned char buf[32];
+        timer.expires_after(std::chrono::milliseconds(150));
+        timer.async_wait([&](const asio::error_code&){ port_.cancel(); });
+        port_.async_read_some(asio::buffer(buf, sizeof(buf)),
+            [&](const asio::error_code&, std::size_t){});
+        io_.run();
+        io_.restart();
+    }
+
 
     // Close the serial connection if open.
     void disconnect() {
@@ -285,7 +335,7 @@ public:
         // Build base, append hi/lo, then CRC (low, high)
         std::vector<unsigned char> frame = {
             0x01, 0x10, 0x04, 0x12, 0x00, 0x02, 0x04, 0x00, 0x00
-        };
+        };  
         frame.push_back(abs_hi);
         frame.push_back(abs_lo);
         uint16_t crc = crc16_modbus(frame.data(), frame.size());
@@ -389,10 +439,17 @@ public:
                                 (static_cast<uint16_t>(rx[rx.size() - 1]) << 8);
             if (calc_crc != recv_crc) return 0;
 
-            // Use bytes 5/6, then round to nearest unit
+            // Use bytes 5/6, interpret as signed 16-bit (scaled *100), then round
             if (rx.size() >= 7) {
-                uint16_t dec = (static_cast<uint16_t>(rx[5]) << 8) | static_cast<uint16_t>(rx[6]);
-                return static_cast<int>((dec + 50) / 100);
+                uint16_t raw = (static_cast<uint16_t>(rx[5]) << 8) | static_cast<uint16_t>(rx[6]);
+                int16_t signed_raw = static_cast<int16_t>(raw); // sign extension
+                // sign-aware rounding toward nearest integer
+                int result;
+                if (signed_raw >= 0)
+                    result = (signed_raw + 50) / 100;
+                else
+                    result = (signed_raw - 50) / 100;
+                return result;
             }
             return 0;
         } catch (...) {
@@ -409,7 +466,8 @@ public:
         int start_pos = get_current_position();
         int expected = std::max(0, start_pos + magnitude);
         int spd = move_speed;
-        if (spd < 1) spd = 1; else if (spd > 30) spd = 30;
+        std::cout << "Speed: " << spd << std::endl;
+        if (spd < 1) spd = 1; //else if (spd > 30) spd = 30;
 
         // Build speed bytes (big-endian)
         unsigned char speed_hi = static_cast<unsigned char>((spd >> 8) & 0xFF);
@@ -906,17 +964,27 @@ int main() {
 // #else
 //     stress_test_connect_disconnect(ctrl, 100, 50, "/dev/ttyUSB0");
 // #endif
-    int rc = ctrl.connect();
+        int rc = ctrl.connect();
     if (rc != 0 || !ctrl.is_connected()) {
         std::cerr << "Failed to connect" << std::endl;
         return 1;
     }
+        ctrl.reset();
+
+
 
     // Run connect/disconnect stress test
     // stress_test_connect_disconnect(ctrl, /*iterations=*/1, /*delay_ms=*/40);
 
     int p0 = ctrl.get_current_position();
     std::cout << "Current: " << p0 << std::endl;
+    
+    ctrl.move_relative_blocking(5, 20, 120, 0);
+   // Allow motion to settle before reading (was 100 ms)
+   std::this_thread::sleep_for(std::chrono::milliseconds(700));
+   int p1 = ctrl.get_current_position();
+   std::cout << "After +20: " << p1 << std::endl;
+
     // 78 là chạm mặt bàn
     // Run automated randomized tests within position range [0, 50], step up to 5 units
     // stress_test_move_relative_blocking(ctrl,
@@ -930,12 +998,12 @@ int main() {
     // Relative movement stress test
 
     // Absolute movement stress test with reduced tolerance
-    stress_test_move_absolute_blocking(ctrl,
-                              /*iterations=*/100,
-                              /*min_pos=*/0,
-                              /*max_pos=*/70,
-                              /*settle_timeout_ms=*/120000,
-                              /*tolerance=*/0);
+    // stress_test_move_absolute_blocking(ctrl,
+    //                           /*iterations=*/100,
+    //                           /*min_pos=*/0,
+    //                           /*max_pos=*/70,
+    //                           /*settle_timeout_ms=*/120000,
+    //                           /*tolerance=*/0);
 
     ctrl.disconnect();
     return 0;
