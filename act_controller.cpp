@@ -454,7 +454,7 @@ public:
             uint16_t recv_crc = static_cast<uint16_t>(rx[rx.size() - 2]) |
                                 (static_cast<uint16_t>(rx[rx.size() - 1]) << 8);
             if (calc_crc != recv_crc) return 0;
-
+            // dùng cả 2 bytes trước đó để đọc dấu.
             // Use bytes 5/6, interpret as signed 16-bit (scaled *100), then round
             if (rx.size() >= 7) {
                 uint16_t raw = (static_cast<uint16_t>(rx[5]) << 8) | static_cast<uint16_t>(rx[6]);
