@@ -92,10 +92,6 @@ Response parsing:
 - Windows: COM1..COM32. For example, in my labmate's laptop, COM5-7.
 - Linux: /dev/ttyUSB[0..9], /dev/ttyS[0..31], /dev/tty[0..63]. Most of the time, it is /dev/ttyUSB0.
 
-## Error Handling
-- Exceptions caught broadly, connection resets port state.
-- CRC mismatches or malformed frames → ignored, return safe defaults (e.g., position 0).
-
 ## Stress Testing Facilities
 - stress_test_move_relative_blocking
 - stress_test_move_relative
@@ -131,6 +127,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
