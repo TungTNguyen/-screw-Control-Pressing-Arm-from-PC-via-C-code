@@ -81,7 +81,7 @@ Request: 01 03 90 00 00 10 69 06
 Response parsing:
 - Header: addr, func, byteCount
 - Data: byteCount bytes + 2 CRC bytes
-- Position extracted from bytes[5], bytes[6] (scaled /100 with rounding (+50)/100).
+- Position extracted from bytes[3], bytes[4], bytes[5], bytes[6] (scaled /100 with rounding (+50)/100).
 
 ## Timing / I/O Strategy
 - Small sleeps (50–120 ms) after writes.
@@ -131,6 +131,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
