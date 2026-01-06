@@ -51,19 +51,19 @@ More functions will be added as needed.
 Encapsulates serial communication with a motion controller on Windows (COM ports) and Linux (/dev/ttyUSB*, /dev/ttyS*). Provides:
 - Auto-connect with probe + fallback scan.
 - Relative and absolute movement (blocking / non-blocking variants).
-- Position polling with CRC validation.
+- Position polling with Checksum validation.
 - Stress tests (randomized movement & connect/disconnect).
 
 ## Serial Communication (Connection Flow)
 1. Preferred port chosen:
    - Windows: explicit user port or default COM7.
    - Linux: explicit user port or default /dev/ttyUSB0.
-2. Probe frame: 01 03 90 00 00 10 69 06 sent; response must pass CRC.
+2. Probe frame: 01 03 90 00 00 10 69 06 sent; response must pass Checksum.
 3. Initialization sequence: multiple 01 03 and 01 05 frames (read/write setup registers).
 4. If preferred fails, scan candidate list (platform-specific) until first valid responsive port.
 
-## Checksum (CRC & Frames)
-- CRC16 (poly 0xA001), appended low-byte then high-byte.
+## Checksum
+- Checksum 16 (poly 0xA001), appended low-byte then high-byte.
 - All motion/parameter frames built in big-endian for 16-bit quantities (position scaled by 100).
 
 ## Movement
@@ -81,7 +81,7 @@ Request: 01 03 90 00 00 10 69 06
 Response parsing:
 - Header: addr, func, byteCount
 - The first 3 bytes are addresses and unchanged, during reverse-engineering.
-- Data: byteCount bytes + 2 CRC bytes
+- Data: byteCount bytes + 2 Checksum bytes
 - Position extracted from bytes[3], bytes[4], bytes[5], bytes[6] (scaled /100 with rounding (+50)/100). These 4 bytes change.
 
 ## Timing / I/O Strategy
@@ -118,6 +118,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
