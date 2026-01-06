@@ -63,7 +63,7 @@ Encapsulates serial communication with a motion controller on Windows (COM ports
 4. If preferred fails, scan candidate list (platform-specific) until first valid responsive port.
 
 ## Checksum (CRC & Frames)
-- CRC16 Modbus (poly 0xA001), appended low-byte then high-byte.
+- CRC16 (poly 0xA001), appended low-byte then high-byte.
 - All motion/parameter frames built in big-endian for 16-bit quantities (position scaled by 100).
 
 ## Movement
@@ -131,6 +131,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
