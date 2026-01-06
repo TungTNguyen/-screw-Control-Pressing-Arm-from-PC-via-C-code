@@ -80,9 +80,9 @@ Encapsulates serial communication with a motion controller on Windows (COM ports
 Request: 01 03 90 00 00 10 69 06
 Response parsing:
 - Header: addr, func, byteCount
-- The first 3 bytes are addresses and unchanged, during reverse-engineering.
+- The first 3 bytes include addresses and are unchanged during reverse-engineering.
 - Data: byteCount bytes + 2 Checksum bytes
-- Position extracted from bytes[3], bytes[4], bytes[5], bytes[6] (scaled /100 with rounding (+50)/100). These 4 bytes change.
+- Position extracted from bytes[3], bytes[4], bytes[5], bytes[6] (scaled /100 with rounding (+50)/100). These 4 bytes change during reverse-engineering.
 
 ## Timing / I/O Strategy
 - Small sleeps (50–120 ms) after writes.
@@ -118,6 +118,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
