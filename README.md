@@ -99,17 +99,7 @@ Response parsing:
 - stress_test_connect_disconnect
 Each prints progress and summary (pass/fail counts).
 
-## Extensibility Notes
-- Recommend extracting a header (act_controller.hpp) if wider reuse or mocking is required.
-- Consider refactoring serial_port into an injectable interface for proper isolated unit tests.
-- Logging could be abstracted to allow silent production mode.
-
-## Thread Safety
-Instance is not thread-safe; external synchronization required if shared.
-
 ## Known Constraints
-- Blocking move assumes controller updates position register promptly.
-- Negative relative movement relies on device interpreting 0xFF 0xFF as direction.
 - No explicit acceleration/deceleration profile handling (speed is direct).
 
 ## Minimal Public Interface Snapshot (for reference)
@@ -127,6 +117,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
