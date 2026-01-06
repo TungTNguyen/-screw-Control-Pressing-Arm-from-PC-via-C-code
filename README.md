@@ -48,7 +48,7 @@ More functions will be added as needed.
 # act_controller Design Overview
 
 ## Purpose
-Encapsulates Modbus-RTU style serial communication with a motion controller on Windows (COM ports) and Linux (/dev/ttyUSB*, /dev/ttyS*). Provides:
+Encapsulates serial communication with a motion controller on Windows (COM ports) and Linux (/dev/ttyUSB*, /dev/ttyS*). Provides:
 - Auto-connect with probe + fallback scan.
 - Relative and absolute movement (blocking / non-blocking variants).
 - Position polling with CRC validation.
@@ -131,6 +131,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
