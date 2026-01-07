@@ -63,7 +63,7 @@ Encapsulates serial communication with a motion controller on Windows (COM ports
 
 ## Checksum
 - Checksum 16 (poly 0xA001), appended low-byte then high-byte.
-- All motion/parameter frames built in big-endian for 16-bit quantities (position scaled by 100).
+- All motion/parameter frames for 16-bit quantities (position scaled by 100).
 
 ## Movement
 - Non-blocking:
@@ -117,6 +117,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
