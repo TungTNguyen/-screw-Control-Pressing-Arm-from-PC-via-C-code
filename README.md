@@ -84,8 +84,6 @@ Response parsing:
 
 ## Timing / I/O Strategy
 - Small sleeps (50–120 ms) after writes.
-- Async read with cancel timer (300 ms) to avoid indefinite blocking.
-- Drain function clears residual bytes before a fresh position read.
 
 ## Cross-Platform Port Enumeration
 - Windows: COM1..COM32. For example, in my labmate's laptop, COM5-7.
@@ -116,6 +114,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
