@@ -59,7 +59,6 @@ Encapsulates serial communication with a motion controller on Windows (COM ports
    - Windows: explicit user port or default COM7.
    - Linux: explicit user port or default /dev/ttyUSB0.
 2. Probe frame: 01 03 90 00 00 10 69 06 sent; response must pass Checksum.
-3. Initialization sequence: multiple 01 03 and 01 05 frames (read/write setup registers).
 4. If preferred fails, scan candidate list (platform-specific) until first valid responsive port.
 
 ## Checksum
@@ -118,6 +117,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
