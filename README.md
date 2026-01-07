@@ -73,7 +73,6 @@ Encapsulates serial communication with a motion controller on Windows (COM ports
   - move_relative_blocking(int magnitude, int speed, int timeout_sec, int tolerance = 1)
   - move_absolute_blocking(int position, int timeout_sec, int tolerance = 1)
 - Positive relative uses 0x00 0x00; negative uses 0xFF 0xFF marker bytes before magnitude.
-- Trigger frame (start execution) and optional tail frame (reset coil) follow the main write frame.
 
 ## Position
 Request: 01 03 90 00 00 10 69 06
@@ -117,6 +116,7 @@ public:
     const std::string& get_port_name() const;
 };
 ```
+
 
 
 
